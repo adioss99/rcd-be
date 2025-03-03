@@ -1,0 +1,11 @@
+fastapi[all]
+uvicorn[standard]
+imagekitio==4.1.0
+keras==3.8.0
+matplotlib==3.10.1
+numpy==2.0.2
+pillow==11.1.0
+python-dotenv==1.0.1
+python-multipart==0.0.20
+starlette==0.46.0
+tensorflow==2.18.0
