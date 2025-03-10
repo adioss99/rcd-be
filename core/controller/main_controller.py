@@ -1,5 +1,5 @@
 from fastapi.responses import JSONResponse
-from fastapi import UploadFile, File
+from fastapi import UploadFile
 
 import os
 import uuid
@@ -19,22 +19,34 @@ def delete_image_file(image_path):
     except Exception as e:
         return {"error": str(e)}
 
+def compress_image(arg, quality=60):
+  original_image = Image.open(BytesIO(arg))
+  
+  # Resize image
+  max_size = (500, 500)
+  original_image.thumbnail(max_size, Image.Resampling.LANCZOS)
+  
+  with BytesIO() as buffer:
+    original_image.save(buffer, format="JPEG", quality=quality)  # Compress (quality 0-100)
+    compressed_contents = buffer.getvalue()  # Get compressed image bytes
+
+  return compressed_contents
+
 async def predict(image: UploadFile): 
   try:
-    
     if not image.content_type.startswith("image/"):
-      return {"error": "File format not supported. Please upload an image file."}
+      return {
+        "success": False,
+        "message": "File format not supported. Please upload an image file."
+        }
     
-    image.filename = f"{uuid.uuid4().hex[:12]}.jpg"
+    image.filename = f"{uuid.uuid4().hex[:6]}.jpg"
     contents = await image.read()
     
-    original_image = Image.open(BytesIO(contents))  # Open the image with Pillow
     image_path = f"./core/image/{image.filename}"
+    # compress image
+    compressed_contents = compress_image(contents)
     
-    # Compress and save the image
-    with BytesIO() as buffer:
-        original_image.save(buffer, format="JPEG", quality=60)  # Compress (quality 0-100)
-        compressed_contents = buffer.getvalue()  # Get compressed image bytes
     # Write compressed image to disk
     with open(image_path, "wb") as f:
         f.write(compressed_contents)
@@ -47,24 +59,31 @@ async def predict(image: UploadFile):
   
     delete_image_file(image_path)
     delete_image_file(visualized_path)
+    
     return JSONResponse({
+      "success" : True,
       "message": "Predict success", 
       'response': {
         "class": result[1][0], 
         "confidence": result[1][1],
         "cnn_img": { 
           "img_id":upload_cnn['fileId'],
+          "name":upload_cnn["name"],
           "url": upload_cnn['url'],
           },
         "xai_img": { 
           "img_id":upload_xai['fileId'],
+          "name":upload_cnn["name"],
           "url": upload_xai['url'],
           },
         }
+      
       })
   except Exception as e:
-    print(e)
-    return JSONResponse({'message': "Empty file. Please upload an image file."})
+    return JSONResponse({
+      'success': False,
+      'message': "Empty file. Please upload an image file."
+      })
   
 def delete(request):
   try:
