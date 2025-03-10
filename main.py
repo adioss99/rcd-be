@@ -5,6 +5,7 @@ from fastapi.responses import JSONResponse
 from core.controller.main_controller import predict, delete, remove_folder
 from apscheduler.schedulers.background import BackgroundScheduler
 from contextlib import asynccontextmanager
+from fastapi.middleware.cors import CORSMiddleware
 
 @asynccontextmanager
 async def lifespan(_:FastAPI):
@@ -18,6 +19,18 @@ async def lifespan(_:FastAPI):
         print("---Shutting down---")
 
 app = FastAPI(lifespan=lifespan)
+
+origins = [
+    os.getenv('CORS_ORIGIN'),  # Allow your deployed frontend
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/")
 async def index():

@@ -59,7 +59,7 @@ def get_heatmap(img_path, this_model = model, pred_id = None):
   confidence_level = tf.reduce_max(tf.nn.softmax(preds[0])).numpy()
   score = round(confidence_level * 100, 3)
   
-  label = [class_names[pred_idx], str(score)+"%"]
+  label = [class_names[pred_idx], str(score)]
     
   return heatmap, label
 
