@@ -32,15 +32,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get("/")
+@app.get("/api/v1")
 async def index():
     return JSONResponse({"message": "RDC API ready"})
 
-@app.post("/predict")
+@app.post("/api/v1/predict")
 async def upload(image: UploadFile = File(...)): 
     return await predict(image)
 
-@app.delete("/delete/{img_id}")
+@app.delete("/api/v1/delete/{img_id}")
 async def delete_image(img_id: str):
     return delete(img_id)
 
