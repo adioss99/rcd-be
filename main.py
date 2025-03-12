@@ -1,11 +1,12 @@
 import uvicorn
 import os
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, File, UploadFile, Depends
 from fastapi.responses import JSONResponse
-from core.controller.main_controller import predict, delete, remove_folder
 from apscheduler.schedulers.background import BackgroundScheduler
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
+from core.controller.main_controller import predict, delete, remove_folder
+from core.middleware.auth import api_key_auth
 
 @asynccontextmanager
 async def lifespan(_:FastAPI):
@@ -18,7 +19,7 @@ async def lifespan(_:FastAPI):
     finally:
         print("---Shutting down---")
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(lifespan=lifespan, dependencies=[Depends(api_key_auth)])
 
 origins = [
     os.getenv('CORS_ORIGIN'),  # Allow your deployed frontend
